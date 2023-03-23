@@ -104,8 +104,8 @@ class ScreenWriter:
                  verbose=0,
                  replicate_engine=REPLICATE_ENGINE,
                  replicate_version=REPLICATE_VERSION,
-                 image_height=512,
-                 image_width=1024,
+                 image_height=768,
+                 image_width=768,
                  timeout=60 * 60,
                  default_tags=None
                  ):

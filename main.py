@@ -7,6 +7,8 @@ from configs import (OPENAI_API_KEY, STABLEDIFFUSION_API_KEY,
                      PATH_DATA_MOVIES_MUSIC, PATH_DATA_MOVIES)
 
 
+# TODO: add trends scrapper to automatize the prompt title input
+
 def main(prompt,
          music_path=PATH_DATA_MOVIES_MUSIC / "calm-chill-beautiful.mp3",
          target_languages=None,
