@@ -1,0 +1,15 @@
+venv
+.idea
+.env
+*__pycache__*
+data/sandbox
+
+data/movies/**
+
+notebooks/*.mp3
+notebooks/*.pickle
+*.ipynb_checkpoints
+*.DS_Store
+keys/*.json
+
+packages/video_manager/tests/*.mp3
