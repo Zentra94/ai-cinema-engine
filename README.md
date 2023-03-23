@@ -60,11 +60,18 @@ keys and save them to their respective locations:
 
 ## Usage
 
-You can have a E2E execution (create & upload a new video) running the command:
+You can have a E2E execution (create & upload a new video) running the `python main.py "TITLE PROMPT"` as the next example:
 
 ```bash
 python main.py "create a unique title of a youtube video of 3 curios facts about pandas bears"
 ```
+
+Result:
+
+[![IMAGE_ALT](statics/images/pandas_example.png)](https://www.youtube.com/watch?v=QRuOv-j-NRc&t=8s)
+
+
+
 For more details and configurations you can check `packages/video_manges/core/screenwriter.py` & `packages/video_manges/core/youtube.py` files.
 
 

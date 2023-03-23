@@ -31,9 +31,8 @@ def _prompt_engineering(prompt,
 
 
 def _add_static_image_to_audio(image_path, audio_path, output_path):
-    """Create and save a video file to `output_path` after
-    combining a static image that is located in `image_path`
-    with an audio file in `audio_path`"""
+    """Create and save a video file to `output_path` after combining a static image that
+    is located in `image_path` with an audio file in `audio_path`."""
 
     # create the audio clip object
     audio_clip = AudioFileClip(str(audio_path))
@@ -50,8 +49,7 @@ def _add_static_image_to_audio(image_path, audio_path, output_path):
 
 
 def _paragraphs_splitter(text, rules_kw=None, min_length=5):
-    """
-    Splits a given text into paragraphs based on the specified rules and minimum
+    """ Splits a given text into paragraphs based on the specified rules and minimum
     paragraph length.
 
     Args:
@@ -94,6 +92,7 @@ def _paragraphs_splitter(text, rules_kw=None, min_length=5):
 
 
 class ScreenWriter:
+    """A class for generating video scripts using AI-powered text generation engines."""
 
     def __init__(self,
                  base_path,
@@ -107,8 +106,31 @@ class ScreenWriter:
                  image_height=768,
                  image_width=768,
                  timeout=60 * 60,
-                 default_tags=None
-                 ):
+                 default_tags=None):
+        """Initialize ScreenWriter.
+
+        Args:
+            base_path (str): The base path for the generated video script files.
+            gcp_sa_key (str): The path to the Google Cloud Platform service account key
+                file.
+            replicate_api_key (str): The API key for the Replicate API.
+            open_ai_key (str): The API key for the OpenAI API.
+            engine (str, optional): The AI-powered text generation engine to use.
+                Defaults to "gpt-3.5-turbo".
+            verbose (int, optional): The verbosity level of the class. Defaults to 0.
+            replicate_engine (str, optional): The Replicate engine to use. Defaults to
+                REPLICATE_ENGINE.
+            replicate_version (str, optional): The version of the Replicate engine to
+                use. Defaults to REPLICATE_VERSION.
+            image_height (int, optional): The height of the images used in the video
+                script. Defaults to 768.
+            image_width (int, optional): The width of the images used in the video
+                script. Defaults to 768.
+            timeout (int, optional): The maximum amount of time in seconds to wait for a
+                response from the text generation engine. Defaults to 3600.
+            default_tags (List[str], optional): The default tags to use for the video
+                script. Defaults to None.
+        """
 
         if default_tags is None:
             default_tags = ["artificial intelligence", "future", "machines",
@@ -140,6 +162,18 @@ class ScreenWriter:
         self.cover = None
 
     def generate_text(self, prompt, **kwargs):
+        """Generates a response to the given prompt using OpenAI's chatbot API.
+
+        Args:
+            prompt (str): The prompt to use for generating the response.
+            **kwargs: Additional arguments to pass to the OpenAI API.
+
+        Returns:
+            str: The generated response to the prompt.
+
+        Raises:
+            OpenAIError: If there was an error with the OpenAI API.
+        """
 
         messages = [{"role": "user",
                      "content": prompt}]
@@ -186,6 +220,21 @@ class ScreenWriter:
         return image
 
     def text_to_speech(self, text, voice_name=None):
+        """Synthesizes a given text into speech using Google Cloud Text-to-Speech API.
+
+        Args:
+            text (str): The input text to synthesize into speech.
+            voice_name (Optional[str]): The name of the voice to use for synthesizing
+                speech. If None, a default voice is used.
+
+        Returns:
+            bytes: The synthesized audio content as bytes.
+
+        Raises:
+            ValueError: If the given text is empty or too long.
+            google.api_core.exceptions.InvalidArgument: If there is an error with the
+                Google Cloud Text-to-Speech API.
+        """
 
         if voice_name is None:
             voice_name = "en-US-News-N"
@@ -252,6 +301,38 @@ class ScreenWriter:
             that the title is:""",
             content_to_description_prompt=None,
             content_to_image_prompt="Generate a HD Youtube scene where:"):
+
+        """Trains the ScreenWriter model using the provided parameters and generates a
+        final video based on the script.
+
+        Args:
+            title_prompt (str): The initial prompt for generating the video title.
+            music_path (str): The path to the audio file to use as background music.
+            title_kwargs (Optional[dict]): The parameters to use for generating the
+                video title. Defaults to None.
+            content_kwargs (Optional[dict]): The parameters to use for generating the
+                video content. Defaults to None.
+            description_kwargs (Optional[dict]): The parameters to use for generating
+                the video description. Defaults to None.
+            image_kwargs (Optional[dict]): The parameters to use for generating the
+                video images. Defaults to None.
+            rules_kw (Optional[dict]): The parameters to use for splitting the generated
+                content into paragraphs. Defaults to None.
+            min_length (int): The minimum length of a paragraph. Defaults to 5.
+            voice_name (Optional[str]): The name of the voice to use for the
+                text-to-speech synthesis. Defaults to None.
+            title_to_content_prompt (str): The prompt to use for generating the video
+                content based on the title. Defaults to "Generate a Youtube script
+                about".
+            title_to_cover_prompt (str): The prompt to use for generating the video
+                cover image based on the title. Defaults to "Generate a HD very
+                engage-able Youtube cover video that the title is:".
+            content_to_description_prompt (Optional[str]): The prompt to use for
+                generating the video description based on the content. Defaults to None.
+            content_to_image_prompt (str): The prompt to use for generating the video
+                images based on the content. Defaults to "Generate a HD Youtube scene
+                where:".
+        """
 
         if content_kwargs is None:
             content_kwargs = {"max_tokens": 256 * 2,

@@ -94,6 +94,8 @@ def _create_service(base_path, client_secret_file, api_name, api_version, scopes
 
 
 class YoutubeManager:
+    """A class for managing the creation and uploading of YouTube videos, including
+    captions & thumbnails."""
 
     def __init__(self,
                  base_path,
@@ -102,6 +104,22 @@ class YoutubeManager:
                  api_name="youtube",
                  api_version="v3",
                  scopes=None):
+
+        """Initialize YoutubeManager.
+
+        Args:
+            base_path (pathlib.Path): The base directory for the project.
+            caption_access_key (str): The access key for the captioning engine.
+            client_secret_file (str): The path to the client secret file for the YouTube
+                API.
+            api_name (str): The name of the YouTube API.
+            api_version (str): The version of the YouTube API.
+            scopes (list of str): The scopes required for the YouTube API.
+
+        Raises:
+            FileNotFoundError: If the client secret file or ScreenWriter.pkl file cannot
+                be found.
+        """
 
         self.response_video = None
         self.response_captions = {}
