@@ -27,12 +27,6 @@ def _prompt_engineering(prompt,
     clean_prompt = " ".join(re.sub('[^a-zA-Z ]+', '', prompt).split())
 
     # TODO: Improve prompt engineering (get verb, subject, etc..)
-    # rake_nltk_var.extract_keywords_from_text(clean_prompt)
-    # keyword_extracted = rake_nltk_var.get_ranked_phrases()
-    # max_token = min(max_token, len(keyword_extracted))
-    # keyword_extracted_tokens = keyword_extracted[:max_token]
-    # return "{} {}".format(fmmt_phrase, ", ".join(keyword_extracted_tokens))
-
     return "{} {}".format(fmmt_phrase, clean_prompt)
 
 

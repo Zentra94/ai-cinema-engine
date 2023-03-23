@@ -11,7 +11,6 @@ def main(prompt,
          music_path=PATH_DATA_MOVIES_MUSIC / "calm-chill-beautiful.mp3",
          target_languages=None,
          cover_path=None):
-
     screen_writer = ScreenWriter(
         base_path=PATH_DATA_MOVIES,
         gcp_sa_key=GCP_SA_KEY,
@@ -32,7 +31,8 @@ def main(prompt,
 
 
 if __name__ == '__main__':
-
     # TODO: test e2e
 
-    main(*sys.argv[1:])
+    print(*sys.argv[1:])
+
+    # main(*sys.argv[1:])

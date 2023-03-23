@@ -11,6 +11,7 @@ from packages.video_manager.core.youtube import YoutubeManager
 #  .gitignore)
 
 class TestYoutube(unittest.TestCase):
+
     base_path = PATH_DATA_MOVIES / "m20230323094608"
     video_id = "QRuOv-j-NRc"
     youtube_manager = YoutubeManager(base_path=base_path,
