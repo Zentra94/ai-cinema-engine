@@ -74,15 +74,3 @@ For more details and configurations you can check `packages/video_manges/core/sc
 ```bash
 python -m ipykernel install --name venv --display-name "Ai-cinema-engine-venv"
 ```
-
-## Contributors
-<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
-<!-- prettier-ignore-start -->
-<!-- markdownlint-disable -->
-
-<!-- markdownlint-restore -->
-<!-- prettier-ignore-end -->
-
-<!-- ALL-CONTRIBUTORS-LIST:END -->
-
-@Zentra94
