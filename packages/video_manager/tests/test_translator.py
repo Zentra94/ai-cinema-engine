@@ -10,7 +10,6 @@ class TestTranslator(unittest.TestCase):
         for _, item in test_inputs.items():
             raw_text = item["inputs"]
             exp = item["expected"]
-            # TODO: not working - API response error
             res = translate_multi_languages(raw_text=raw_text)
             self.assertEqual(exp, res)
 
