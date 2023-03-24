@@ -60,7 +60,8 @@ def _paragraphs_splitter(text, rules_kw=None, min_length=5):
             (default=5).
 
     Returns:
-        dict: A dictionary where the keys are "p1", "p2", ..., and the values are the corresponding paragraphs of the input text.
+        dict: A dictionary where the keys are "p1", "p2", ..., and the values are the
+            corresponding paragraphs of the input text.
     """
 
     if rules_kw is None:
@@ -100,7 +101,7 @@ class ScreenWriter:
                  replicate_api_key,
                  open_ai_key,
                  engine="gpt-3.5-turbo",
-                 verbose=0,
+                 verbose=1,
                  replicate_engine=REPLICATE_ENGINE,
                  replicate_version=REPLICATE_VERSION,
                  image_height=768,

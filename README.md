@@ -66,11 +66,21 @@ You can have a E2E execution (create & upload a new video) running the `python m
 python main.py "create a unique title of a youtube video of 3 curios facts about pandas bears"
 ```
 
-Result:
+Wait some minutes, and you will have a result like this (click the image for check the video):
 
-[![IMAGE_ALT](statics/images/pandas_example.png)](https://www.youtube.com/watch?v=QRuOv-j-NRc&t=8s)
+[![IMAGE_ALT](statics/images/pandas_example.png)](https://www.youtube.com/watch?v=LP7kzXZt34Q)
 
+This will include: cover page image for the Youtube miniature (1), automatic title (2) and description (3).
 
+![pandas1](statics/images/pandas_example_1.png)
+
+Also, will upload some ad-hoc tags.
+
+![pandas2](statics/images/pandas_example_2.png)
+
+And will provide some multi-language subtitles (uploaded automatically as well).
+
+![pandas3](statics/images/pandas_example_3.png)
 
 For more details and configurations you can check `packages/video_manges/core/screenwriter.py` & `packages/video_manges/core/youtube.py` files.
 

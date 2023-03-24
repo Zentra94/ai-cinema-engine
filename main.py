@@ -1,3 +1,4 @@
+import pathlib
 import sys
 
 from packages.video_manager.core.youtube import YoutubeManager
@@ -6,13 +7,32 @@ from configs import (OPENAI_API_KEY, STABLEDIFFUSION_API_KEY,
                      PICOVOICE_API_KEY, CLIENT_SECRETS, GCP_SA_KEY,
                      PATH_DATA_MOVIES_MUSIC, PATH_DATA_MOVIES)
 
+from typing import Union, List
+
+DEFAULT_MUSIC_PATH = PATH_DATA_MOVIES_MUSIC / "calm-chill-beautiful.mp3"
+
 
 # TODO: add trends scrapper to automatize the prompt title input
 
-def main(prompt,
-         music_path=PATH_DATA_MOVIES_MUSIC / "calm-chill-beautiful.mp3",
-         target_languages=None,
-         cover_path=None):
+def main(prompt: str,
+         music_path: Union[pathlib.Path, str] = DEFAULT_MUSIC_PATH,
+         target_languages: List[str] = None,
+         cover_path: Union[pathlib.Path, str] = None) -> None:
+    """Executes an end-to-end process of creating and uploading a video.
+
+    Args:
+        prompt (str): The title or prompt of the video. Example: "create a unique title
+            of a youtube video of 3 curios facts about pandas bears".
+        music_path (pathlib.Path or str, optional): The path to the audio file to be
+            used as background music. Defaults to DEFAULT_MUSIC_PATH.
+        target_languages (List[str], optional): A list of language codes in which the
+            video should be captioned. Defaults to None, which means no captions will be
+            generated.
+        cover_path (Union[pathlib.Path, str], optional): The path to the image file to
+            be used as the video's cover.Defaults to None, which means no custom cover
+            image will be used.
+    """
+
     screen_writer = ScreenWriter(
         base_path=PATH_DATA_MOVIES,
         gcp_sa_key=GCP_SA_KEY,
@@ -33,8 +53,5 @@ def main(prompt,
 
 
 if __name__ == '__main__':
-    # TODO: test e2e
 
-    print(*sys.argv[1:])
-
-    # main(*sys.argv[1:])
+    main(*sys.argv[1:])

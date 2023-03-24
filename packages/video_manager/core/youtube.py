@@ -8,7 +8,7 @@ from googleapiclient.http import MediaFileUpload
 from google.auth.transport.requests import Request
 
 
-def _fmmt_response(response):
+def _fmt_response(response):
     # TODO: Change 'PLACE_HOLDER' to a image class compatible with to_json() method
 
     for attr_name in dir(response):
@@ -16,7 +16,10 @@ def _fmmt_response(response):
         if isinstance(attr, bytes):
             response.__setattr__(attr_name, "PLACE_HOLDER")
 
-    return response.to_json()
+    if hasattr(response, "to_json"):
+        return response.to_json()
+
+    return response
 
 
 def _second_to_timecode(x: float) -> str:
@@ -127,8 +130,7 @@ class YoutubeManager:
         self.video_id = None
 
         if scopes is None:
-            scopes = ["https://www.googleapis.com/auth/youtube"
-                      "https://www.googleapis.com/auth/youtube.upload",
+            scopes = ["https://www.googleapis.com/auth/youtube.upload",
                       "https://www.googleapis.com/auth/youtube.force-ssl",
                       "https://www.googleapis.com/auth/youtubepartner"]
 
@@ -165,13 +167,13 @@ class YoutubeManager:
             new_captions = []
             for i, elemt in enumerate(original_captions.split("\n")):
                 if i == 2 or (i - 2) % 4 == 0:
-                    elemt_fmmt = translate_multi_languages(
+                    elemt_fmt = translate_multi_languages(
                         raw_text=elemt,
                         output_languages=[language])[language]
                 else:
-                    elemt_fmmt = elemt
+                    elemt_fmt = elemt
 
-                new_captions.append(elemt_fmmt)
+                new_captions.append(elemt_fmt)
 
             captions[language] = "\n".join(new_captions)
 
@@ -200,7 +202,7 @@ class YoutubeManager:
             }
         }
 
-        self.response_video = _fmmt_response(
+        self.response_video = _fmt_response(
             response=self.youtube_service.videos().insert(
                 part="snippet,status",
                 body=request_body,
@@ -240,7 +242,7 @@ class YoutubeManager:
                 }
             }
 
-            self.response_captions[language] = _fmmt_response(
+            self.response_captions[language] = _fmt_response(
                 response=self.youtube_service.captions().insert(
                     part="snippet",
                     body=request_captions,
@@ -260,7 +262,7 @@ class YoutubeManager:
 
         response = self.youtube_service.thumbnails().set(videoId=video_id,
                                                          media_body=media_body)
-        self.response_thumbnails = _fmmt_response(response=response)
+        self.response_thumbnails = _fmt_response(response=response)
 
     def fit_upload(self, target_languages=None, audio_path=None, cover_path=None):
 
@@ -272,6 +274,13 @@ class YoutubeManager:
         self.upload_thumbnails(cover_path=cover_path)
 
         path_youtube_manager = self.base_path / "YoutubeManager.pkl"
+
+        self.youtube_service.close()
+
+        # TODO: change this data types to one that could be pickled.
+
+        self.youtube_service = "PLACE_HOLDER"
+        self.caption_engine = "PLACE_HOLDER"
 
         with open(path_youtube_manager, 'wb') as of:
             pickle.dump(self, of)

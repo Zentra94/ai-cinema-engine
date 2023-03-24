@@ -1,22 +1,34 @@
 import os.path
+import pickle
 import unittest
 from configs import (PATH_DATA_MOVIES,
                      PICOVOICE_API_KEY,
                      CLIENT_SECRETS)
 
-from packages.video_manager.core.youtube import YoutubeManager
+from packages.video_manager.core.youtube import (YoutubeManager,
+                                                 _fmt_response)
 
 
 # TODO: base_path and video_id should be create to test (due that example are in
 #  .gitignore)
 
 class TestYoutube(unittest.TestCase):
-
-    base_path = PATH_DATA_MOVIES / "m20230323094608"
-    video_id = "QRuOv-j-NRc"
+    base_path = PATH_DATA_MOVIES / "m20230324115336"
+    video_id = "R3U-i7b04WI"
     youtube_manager = YoutubeManager(base_path=base_path,
                                      caption_access_key=PICOVOICE_API_KEY,
                                      client_secret_file=CLIENT_SECRETS)
+
+    def test__fmt_response(self):
+        with open(self.base_path / "ScreenWriter.pkl", "rb") as f:
+            youtube_manager = pickle.load(f)
+
+        for attr in dir(youtube_manager):
+            if "response" in attr:
+                response = youtube_manager.__getattribute__(attr)
+                fmt_response = _fmt_response(response=response)
+
+                self.assertEqual(isinstance(fmt_response, dict), True)
 
     def test_get_captions_from_audio_path(self):
         captions = self.youtube_manager.get_captions_from_audio_path()
