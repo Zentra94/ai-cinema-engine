@@ -197,8 +197,8 @@ class YoutubeManager:
                 "tags": tags
             },
             "status": {
-                "privecyStatus": "public",
-                "selfDeclareMadeForKids": False
+                "privacyStatus": "public",
+                "selfDeclaredMadeForKids": False
             }
         }
 
@@ -261,7 +261,7 @@ class YoutubeManager:
                                      mimetype="image/png")
 
         response = self.youtube_service.thumbnails().set(videoId=video_id,
-                                                         media_body=media_body)
+                                                         media_body=media_body).execute()
         self.response_thumbnails = _fmt_response(response=response)
 
     def fit_upload(self, target_languages=None, audio_path=None, cover_path=None):

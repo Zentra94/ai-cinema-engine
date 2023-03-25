@@ -13,8 +13,8 @@ from packages.video_manager.core.youtube import (YoutubeManager,
 #  .gitignore)
 
 class TestYoutube(unittest.TestCase):
-    base_path = PATH_DATA_MOVIES / "m20230324115336"
-    video_id = "R3U-i7b04WI"
+    base_path = PATH_DATA_MOVIES / "m20230325182917"
+    video_id = "P_Rlk6GiF8s"
     youtube_manager = YoutubeManager(base_path=base_path,
                                      caption_access_key=PICOVOICE_API_KEY,
                                      client_secret_file=CLIENT_SECRETS)
@@ -50,9 +50,8 @@ class TestYoutube(unittest.TestCase):
         self.assertEqual(len(response_dict) > 0, True)
 
     def test_upload_thumbnails(self):
-        # TODO: not working - set a default cover
 
-        cover_path = self.base_path / "paragraphs/p1_image.png"
+        cover_path = self.base_path / "paragraphs/p0_image.png"
 
         self.youtube_manager.upload_thumbnails(video_id=self.video_id,
                                                cover_path=cover_path),
