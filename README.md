@@ -107,7 +107,7 @@ python -m ipykernel install --name venv --display-name "Ai-cinema-engine-venv"
 - [x] Improve prompt engineering (get verb, subject, etc..) to get better images.
 - [X] Improve [cover](https://blog.devgenius.io/how-to-generate-youtube-thumbnails-easily-with-python-5d0a1f441f20) creation, that will attract more viewers to the video.
 - [ ] Improve content: check that chatGPT is not using "narrator" structure output or defaults answers _"as a natural language model I'm not..."_ and replace respectively.
-- [X] Fix stable-diffusion NSFW detector.
+- [ ] Fix stable-diffusion NSFW detector.
 - [x] Fix bug `upload_thumbnails` apply default image instead of input one.
 - [ ] Improve the serialization of `json` responses (current as "PLACE_HOLDER").
 - [ ] More docstring and unitary test.
