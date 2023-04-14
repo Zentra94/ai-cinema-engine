@@ -99,16 +99,18 @@ python -m ipykernel install --name venv --display-name "Ai-cinema-engine-venv"
 - Franco Zentilli Traverso (@Zentra94)
 
 ## Backlog
-
-- [ ] :fire::fire: Add social media trend scrapper to automatize title prompt creation.
-- [ ] :fire::fire: Add AI [music engine](https://google-research.github.io/seanet/musiclm/examples/) to background music videos.
-- [ ] :fire: Improve prompt engineering (get verb, subject, etc..) to get better images.
-- [ ] :fire: Improve [cover](https://blog.devgenius.io/how-to-generate-youtube-thumbnails-easily-with-python-5d0a1f441f20) creation, that will attract more viewers to the video.
-- [ ] :+1: Improve content: check that chatGPT is not using "narrator" structure output or defaults answers _"as a natural language model I'm not..."_ and replace respectively.
-- [ ] :+1: Fix stable-diffusion NSFW detector.
-- [x] :eyes: Fix bug `upload_thumbnails` apply default image instead of input one.
-- [ ] :eyes: Improve the serialization of `json` responses (current as "PLACE_HOLDER").
-- [ ] :eyes: More docstring and unitary test.
-- [ ] :eyes: Fix unitary test of `test_youtube`. Configure a better `conftest.py` and avoid local dependencies.
-- [x] :eyes: Test E2E execution via `main.py`.
-
+- [ ] Expand channels: upload video to multi social media and formats: reels, shorts, tiktok, instagram, etc..
+- [ ] Migrate & Upload videos to GCP database.
+- [ ] Add a short intro and outro (DAMO video + static text)
+- [ ] Add social media trend scrapper to automatize title prompt creation.
+- [ ] Add AI [music engine](https://google-research.github.io/seanet/musiclm/examples/) to background music videos.
+- [x] Improve prompt engineering (get verb, subject, etc..) to get better images.
+- [X] Improve [cover](https://blog.devgenius.io/how-to-generate-youtube-thumbnails-easily-with-python-5d0a1f441f20) creation, that will attract more viewers to the video.
+- [ ] Improve content: check that chatGPT is not using "narrator" structure output or defaults answers _"as a natural language model I'm not..."_ and replace respectively.
+- [X] Fix stable-diffusion NSFW detector.
+- [x] Fix bug `upload_thumbnails` apply default image instead of input one.
+- [ ] Improve the serialization of `json` responses (current as "PLACE_HOLDER").
+- [ ] More docstring and unitary test.
+- [ ] Fix unitary test of `test_youtube`. Configure a better `conftest.py` and avoid local dependencies.
+- [x] Test E2E execution via `main.py`.
+- [ ] Add logger and logs instead of `prints`.

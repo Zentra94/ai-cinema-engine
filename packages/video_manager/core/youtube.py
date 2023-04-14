@@ -255,7 +255,7 @@ class YoutubeManager:
             video_id = self.video_id
 
         if cover_path is None:
-            cover_path = self.base_path / "paragraphs/p0_image.png"
+            cover_path = self.base_path / "paragraphs/cover.png"
 
         media_body = MediaFileUpload(str(cover_path),
                                      mimetype="image/png")

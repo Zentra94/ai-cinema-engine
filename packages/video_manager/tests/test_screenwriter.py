@@ -1,12 +1,14 @@
 import unittest
 from packages.video_manager.core.screenwriter import (ScreenWriter,
                                                       _paragraphs_splitter,
-                                                      _prompt_engineering)
+                                                      _enhance_thumbnail)
 from configs import (PATH_DATA_MOVIES_MUSIC,
                      PATH_DATA_MOVIES,
                      GCP_SA_KEY,
                      STABLEDIFFUSION_API_KEY,
-                     OPENAI_API_KEY)
+                     OPENAI_API_KEY,
+                     PATH_STATICS_FONTS)
+from PIL import Image
 
 
 class TestScreenWriter(unittest.TestCase):
@@ -62,12 +64,13 @@ class TestScreenWriter(unittest.TestCase):
 
     def test_generate_content_from_prompt(self):
         title = "5 Surprising Facts About Panda Bears - You Won't Believe #3!"
-        prompt = "Generate a Youtube script about {}".format(title)
+        title_to_content_prompt = "Generate a Youtube plain script about",
+        content_prompt = "{} {}".format(title_to_content_prompt, title)
 
         content = self.screen_writer.generate_content_from_prompt(
-            prompt=prompt,
-            max_tokens=32,
-            temperature=0.9)
+            prompt=content_prompt,
+            max_tokens=256 * 2,
+            temperature=0.4)
 
         self.assertEqual(len(content) > 0, True)
 
@@ -94,16 +97,6 @@ class TestScreenWriter(unittest.TestCase):
 
         self.assertEqual(len(speech), 362254)
 
-    def test_prompt_engineering(self):
-        prompt = """
-        Hey everyone! Welcome to my channel. Today I’m going to be talking about 5 
-        Surprising Facts about Panda Bears – You Won't Believe #3! 
-        """
-
-        new_prompt = _prompt_engineering(prompt)
-
-        self.assertEqual(len(new_prompt) <= len(prompt), True)
-
     def test_generate_tags_from_content(self):
         content = self.content
         old_tags = self.screen_writer.tags.copy()
@@ -128,6 +121,24 @@ class TestScreenWriter(unittest.TestCase):
         description = self.screen_writer.description
 
         self.assertEqual(len(old_description) < len(description), True)
+
+    def test_prompt_engineering(self):
+        text = "5 Surprising Facts About Panda Bears - You Won't Believe #3!"
+        prompt = self.screen_writer.prompt_engineering(text=text,
+                                                       update_prompt_engineering_default_list=True)
+        quality = "HD, dramatic lighting, detailed, realistic."
+
+        assert prompt.endswith(quality)
+
+    def test_enhance_thumbnail(self):
+        title = "Video generated 100% with Artificial Intelligence."
+        path_image = PATH_DATA_MOVIES / 'm20230413165056/paragraphs/p0_image.png'
+        image = Image.open(path_image)
+        new_image = _enhance_thumbnail(image=image,
+                                       title=title)
+
+        new_image.show()
+        self.assertEqual(True, True)
 
     def test_fit(self):
         title_prompt = """

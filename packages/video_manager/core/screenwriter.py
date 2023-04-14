@@ -2,6 +2,7 @@ import re
 from datetime import datetime
 import google.cloud.texttospeech as tts
 from google.oauth2 import service_account
+from configs import PATH_STATICS_FONTS
 
 from moviepy.editor import (AudioFileClip,
                             ImageClip,
@@ -11,23 +12,21 @@ from moviepy.editor import (AudioFileClip,
 import openai
 import replicate
 import requests
-from PIL import Image
 from io import BytesIO
 import os
 from natsort import natsorted
 from rake_nltk import Rake
 import pickle
+import spacy
+from PIL import (Image, ImageDraw, ImageFont)
+import textwrap
+
+from typing import List
 
 REPLICATE_VERSION = "f178fa7a1ae43a9a9af01b833b9d2ecf97b1bcb0acfd2dc5dd04895e042863f1"
 REPLICATE_ENGINE = "stability-ai/stable-diffusion"
 
 
-def _prompt_engineering(prompt,
-                        fmmt_phrase="Concept art of:"):
-    clean_prompt = " ".join(re.sub('[^a-zA-Z ]+', '', prompt).split())
-
-    # TODO: Improve prompt engineering (get verb, subject, etc..)
-    return "{} {}".format(fmmt_phrase, clean_prompt)
 
 
 def _add_static_image_to_audio(image_path, audio_path, output_path):
@@ -92,22 +91,58 @@ def _paragraphs_splitter(text, rules_kw=None, min_length=5):
     return paragraphs_dict
 
 
+def _enhance_thumbnail(image,
+                       title="Video generated 100% with Artificial Intelligence.",
+                       path_fonts=PATH_STATICS_FONTS / "Playfair.ttf",
+                       title_font_size=120,
+                       alpha=100,
+                       header_color=(255, 255, 0)
+                       ):
+    title = title.strip()
+    image.putalpha(alpha)
+    draw_image = ImageDraw.Draw(image)
+    W, _ = image.size
+    img_width = int(W * 0.03)
+
+    # Define font sizes
+
+    title_font = ImageFont.truetype(str(path_fonts), title_font_size)
+
+    header_offset = 15
+    # Wrap text and add it to the thumbnail
+    for line in textwrap.wrap(title, width=int(img_width * 0.6)):
+        _, _, w, _ = draw_image.textbbox((0, 0), line, font=title_font)
+
+        xy = ((W - w) / 2, header_offset)
+
+        draw_image.text(xy, line,
+                        font=title_font,
+                        fill=header_color,
+                        spacing=10,
+                        align="center")
+        header_offset += title_font_size
+    return draw_image._image
+
+
 class ScreenWriter:
     """A class for generating video scripts using AI-powered text generation engines."""
 
     def __init__(self,
-                 base_path,
-                 gcp_sa_key,
-                 replicate_api_key,
-                 open_ai_key,
-                 engine="gpt-3.5-turbo",
-                 verbose=1,
-                 replicate_engine=REPLICATE_ENGINE,
-                 replicate_version=REPLICATE_VERSION,
-                 image_height=768,
-                 image_width=768,
-                 timeout=60 * 60,
-                 default_tags=None):
+                 base_path: str,
+                 gcp_sa_key: str,
+                 replicate_api_key: str,
+                 open_ai_key: str,
+                 engine: str = "gpt-3.5-turbo",
+                 verbose: int = 1,
+                 replicate_engine: str = REPLICATE_ENGINE,
+                 replicate_version: str = REPLICATE_VERSION,
+                 image_height: int = 768,
+                 image_width: int = 768,
+                 timeout: int = 60 * 60,
+                 default_tags: List[str] = None,
+                 prompt_engineering_mapping_list: List[str] = None,
+                 prompt_engineering_default_list: dict = None,
+                 prompt_engineering_nlp=spacy.load('en_core_web_sm')):
         """Initialize ScreenWriter.
 
         Args:
@@ -132,6 +167,15 @@ class ScreenWriter:
             default_tags (List[str], optional): The default tags to use for the video
                 script. Defaults to None.
         """
+
+        if prompt_engineering_mapping_list is None:
+            prompt_engineering_mapping_list = ['NOUN', 'VERB', 'ADJ', "PROPN"]
+
+        if prompt_engineering_default_list is None:
+            prompt_engineering_default_list = {'PROPN': ["person"],
+                                               "NOUN": ["facts"],
+                                               'VERB': ["smiling"],
+                                               'ADJ': ["happy"]}
 
         if default_tags is None:
             default_tags = ["artificial intelligence", "future", "machines",
@@ -161,6 +205,10 @@ class ScreenWriter:
         self.title = None
         self.paragraphs = {}
         self.cover = None
+
+        self.prompt_engineering_mapping_list = prompt_engineering_mapping_list
+        self.prompt_engineering_default_list = prompt_engineering_default_list
+        self.prompt_engineering_nlp = prompt_engineering_nlp
 
     def generate_text(self, prompt, **kwargs):
         """Generates a response to the given prompt using OpenAI's chatbot API.
@@ -211,6 +259,7 @@ class ScreenWriter:
 
         pred = self.replicate_version.predict(prompt=prompt,
                                               image_dimensions=self.image_dimensions,
+                                              safety_checker=None,
                                               **kwargs)
 
         image = Image.open(BytesIO(requests.get(pred[0]).content))
@@ -287,6 +336,42 @@ class ScreenWriter:
 
         self.description = description
 
+    def prompt_engineering(self,
+                           text,
+                           max_tokens=32,
+                           quality="HD, dramatic lighting, detailed, realistic",
+                           init_prompt="describes an image",
+                           update_prompt_engineering_default_list=False):
+
+        mapping_kw = {}
+        doc = self.prompt_engineering_nlp(text)
+        for mk in self.prompt_engineering_mapping_list:
+            tokens = [token.text for token in doc if token.pos_ == mk]
+            if len(tokens) == 0:
+                tokens = self.prompt_engineering_default_list[mk]
+            mapping_kw[mk] = tokens
+
+        if update_prompt_engineering_default_list:
+
+            for mk, values in mapping_kw.items():
+                if len(values) > 0:
+                    self.prompt_engineering_default_list[mk] = values
+
+        propns = " and ".join(mapping_kw["PROPN"])
+        nouns = " and ".join(mapping_kw["NOUN"])
+        verbs = " and ".join(mapping_kw["VERB"])
+        adjectives = " and ".join(mapping_kw["ADJ"])
+
+        screen_writer_prompt = f"""{init_prompt} that has as subject {propns} 
+        nouns: {nouns}, verbs: {verbs} and adjectives {adjectives}"""
+
+        prompt = self.generate_text(prompt=screen_writer_prompt,
+                                    max_tokens=max_tokens)
+
+        prompt += f" {quality}."
+
+        return prompt
+
     def fit(self,
             title_prompt,
             music_path,
@@ -297,11 +382,8 @@ class ScreenWriter:
             rules_kw=None,
             min_length=5,
             voice_name=None,
-            title_to_content_prompt="Generate a Youtube script about",
-            title_to_cover_prompt="""Generate a HD very engage-able Youtube cover video 
-            that the title is:""",
-            content_to_description_prompt=None,
-            content_to_image_prompt="Generate a HD Youtube scene where:"):
+            title_to_content_prompt="Generate a Youtube plain script about",
+            content_to_description_prompt=None):
 
         """Trains the ScreenWriter model using the provided parameters and generates a
         final video based on the script.
@@ -323,21 +405,15 @@ class ScreenWriter:
             voice_name (Optional[str]): The name of the voice to use for the
                 text-to-speech synthesis. Defaults to None.
             title_to_content_prompt (str): The prompt to use for generating the video
-                content based on the title. Defaults to "Generate a Youtube script
+                content based on the title. Defaults to "Generate a YouTube script
                 about".
-            title_to_cover_prompt (str): The prompt to use for generating the video
-                cover image based on the title. Defaults to "Generate a HD very
-                engage-able Youtube cover video that the title is:".
             content_to_description_prompt (Optional[str]): The prompt to use for
                 generating the video description based on the content. Defaults to None.
-            content_to_image_prompt (str): The prompt to use for generating the video
-                images based on the content. Defaults to "Generate a HD Youtube scene
-                where:".
         """
 
         if content_kwargs is None:
             content_kwargs = {"max_tokens": 256 * 2,
-                              "temperature": 0.9,
+                              "temperature": 0.4,
                               }
         if title_kwargs is None:
             title_kwargs = {"max_tokens": 32,
@@ -358,14 +434,6 @@ class ScreenWriter:
 
         self.paragraphs["p0"] = self.title
 
-        cover_prompt = "{} {}".format(title_to_cover_prompt, self.title)
-
-        self.cover = self.generate_image_from_prompt(prompt=cover_prompt,
-                                                     **image_kwargs)
-
-        # TODO: improve cover
-        #  https://blog.devgenius.io/how-to-generate-youtube-thumbnails-easily-with-python-5d0a1f441f20
-
         content = self.generate_content_from_prompt(prompt=content_prompt,
                                                     **content_kwargs)
 
@@ -385,22 +453,25 @@ class ScreenWriter:
 
         for p, txt in self.paragraphs.items():
 
-            prompt = _prompt_engineering(prompt=txt,
-                                         fmmt_phrase=content_to_image_prompt)
+            prompt = self.prompt_engineering(text=txt,
+                                             update_prompt_engineering_default_list=p == "p0")
+
+            new_image = self.generate_image_from_prompt(prompt=prompt,
+                                                        **image_kwargs)
+
+            image_path = paragraphs_path / "{}_image.png".format(p)
+            new_image.save(image_path)
 
             if p == "p0":
-                new_image = self.cover
-            else:
-                new_image = self.generate_image_from_prompt(prompt=prompt,
-                                                            **image_kwargs)
+                self.cover = _enhance_thumbnail(image=new_image)
+                cover_path = paragraphs_path / "cover.png".format(p)
+                self.cover.save(cover_path)
 
             new_speech = self.text_to_speech(text=txt,
                                              voice_name=voice_name)
 
-            image_path = paragraphs_path / "{}_image.png".format(p)
             speech_path = paragraphs_path / "{}_speech.wav".format(p)
 
-            new_image.save(image_path)
 
             with open(speech_path, "wb") as out:
                 out.write(new_speech)
