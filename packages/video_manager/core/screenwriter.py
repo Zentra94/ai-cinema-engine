@@ -5,6 +5,7 @@ from google.oauth2 import service_account
 from configs import PATH_STATICS_FONTS
 
 from moviepy.editor import (AudioFileClip,
+                            AudioClip,
                             ImageClip,
                             VideoFileClip,
                             concatenate_videoclips,
@@ -12,6 +13,7 @@ from moviepy.editor import (AudioFileClip,
 import openai
 import replicate
 import requests
+import numpy as np
 from io import BytesIO
 import os
 from natsort import natsorted
@@ -20,13 +22,13 @@ import pickle
 import spacy
 from PIL import (Image, ImageDraw, ImageFont)
 import textwrap
+import soundfile as sf
 
 from typing import List
 
-REPLICATE_VERSION = "f178fa7a1ae43a9a9af01b833b9d2ecf97b1bcb0acfd2dc5dd04895e042863f1"
-REPLICATE_ENGINE = "stability-ai/stable-diffusion"
-
-
+REPLICATE_STABILITY_VERSION = "f178fa7a1ae43a9a9af01b833b9d2ecf97b1bcb0acfd2dc5dd04895e042863f1"
+REPLICATE_STABILITY_ENGINE = "stability-ai/stable-diffusion"
+REPLICATE_RIFFUSION_VERSION = "riffusion/riffusion:8cf61ea6c56afd61d8f5b9ffd14d7c216c0a93844ce2d82ac1c9ecc9c7f24e05"
 
 
 def _add_static_image_to_audio(image_path, audio_path, output_path):
@@ -134,8 +136,9 @@ class ScreenWriter:
                  open_ai_key: str,
                  engine: str = "gpt-3.5-turbo",
                  verbose: int = 1,
-                 replicate_engine: str = REPLICATE_ENGINE,
-                 replicate_version: str = REPLICATE_VERSION,
+                 replicate_stability_engine: str = REPLICATE_STABILITY_ENGINE,
+                 replicate_stability_version: str = REPLICATE_STABILITY_VERSION,
+                 replicate_riffusion_version: str = REPLICATE_RIFFUSION_VERSION,
                  image_height: int = 768,
                  image_width: int = 768,
                  timeout: int = 60 * 60,
@@ -154,10 +157,10 @@ class ScreenWriter:
             engine (str, optional): The AI-powered text generation engine to use.
                 Defaults to "gpt-3.5-turbo".
             verbose (int, optional): The verbosity level of the class. Defaults to 0.
-            replicate_engine (str, optional): The Replicate engine to use. Defaults to
-                REPLICATE_ENGINE.
-            replicate_version (str, optional): The version of the Replicate engine to
-                use. Defaults to REPLICATE_VERSION.
+            replicate_stability_engine (str, optional): The Replicate engine to use.
+                Defaults to REPLICATE_ENGINE.
+            replicate_stability_version (str, optional): The version of the Replicate
+                engine to use. Defaults to REPLICATE_VERSION.
             image_height (int, optional): The height of the images used in the video
                 script. Defaults to 768.
             image_width (int, optional): The width of the images used in the video
@@ -195,8 +198,12 @@ class ScreenWriter:
         self.base_path = base_path / "m{}".format(
             datetime.now().strftime("%Y%m%d%H%M%S"))
         self.replicate_client = replicate.Client(api_token=replicate_api_key)
-        self.replicate_model = self.replicate_client.models.get(replicate_engine)
-        self.replicate_version = self.replicate_model.versions.get(replicate_version)
+        self.replicate_model = self.replicate_client.models.get(
+            replicate_stability_engine)
+        self.replicate_version = self.replicate_model.versions.get(
+            replicate_stability_version)
+        self.replicate_riffusion_version = replicate_riffusion_version
+
         self.image_dimensions = "{}x{}".format(image_width, image_height)
 
         self.gcp_service_account = service_account.Credentials.from_service_account_file(
@@ -372,9 +379,58 @@ class ScreenWriter:
 
         return prompt
 
+    def generate_wav_file_music_from_prompt(self,
+                                            prompt_a,
+                                            prompt_b="Classic music and Electronic",
+                                            alpha=0.5,
+                                            denoising=0.9,
+                                            num_inference_steps=30,
+                                            seed_image_id="vibes",
+                                            path=None,
+                                            min_duration_sec=60 * 5):
+        if path is None:
+            path = str(self.base_path / "bg_music.wav")
+
+        replicate_input = {
+            "prompt_a": prompt_a,
+            "prompt_b": prompt_b,
+            "alpha": alpha,
+            "denoising": denoising,
+            "num_inference_steps": num_inference_steps,
+            "seed_image_id": seed_image_id
+        }
+
+        duration = 0
+        counter = 0
+        samplerate = 0
+        datas = []
+
+        while duration < min_duration_sec:
+            pred = self.replicate_client.run(self.replicate_riffusion_version,
+                                             input=replicate_input)
+
+            response = requests.get(pred.get("audio")).content
+            bytes_content = BytesIO(response)
+            data, samplerate = sf.read(bytes_content)
+            datas.append(data)
+
+            duration += len(data) / samplerate
+            counter += 1
+
+            if self.verbose > 0:
+                print(f"Generating music: try nb. {counter}. total duration: {duration}")
+
+        final_music = np.concatenate(datas)
+
+        sf.write(path, final_music, samplerate=samplerate, format="wav")
+
+        print(f"Music save in {path}")
+
+        return path
+
     def fit(self,
             title_prompt,
-            music_path,
+            music_path=None,
             title_kwargs=None,
             content_kwargs=None,
             description_kwargs=None,
@@ -410,6 +466,9 @@ class ScreenWriter:
             content_to_description_prompt (Optional[str]): The prompt to use for
                 generating the video description based on the content. Defaults to None.
         """
+
+        if music_path is None:
+            music_path = self.base_path / "bg_music.wav"
 
         if content_kwargs is None:
             content_kwargs = {"max_tokens": 256 * 2,
@@ -472,7 +531,6 @@ class ScreenWriter:
 
             speech_path = paragraphs_path / "{}_speech.wav".format(p)
 
-
             with open(speech_path, "wb") as out:
                 out.write(new_speech)
 
@@ -502,7 +560,10 @@ class ScreenWriter:
 
         # Add Background Music
         # TODO: Add AI music engine:
-        #  https://google-research.github.io/seanet/musiclm/examples/
+        #  https://replicate.com/riffusion/riffusion/api
+
+        self.generate_wav_file_music_from_prompt(prompt_a=self.title,
+                                                 path=music_path)
 
         audio_clip = AudioFileClip(str(music_path))
         audio_clip = audio_clip.volumex(0.05)

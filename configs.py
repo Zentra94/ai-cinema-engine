@@ -21,7 +21,7 @@ GCP_SA_KEY = PATH_KEYS / "GCP_sa_key.json"
 
 load_dotenv()
 OPENAI_API_KEY = os.environ["OPENAI_API_KEY"]
-STABLEDIFFUSION_API_KEY = os.environ["STABLEDIFFUSION_API_KEY"]
+REPLICATE_API_KEY = os.environ["REPLICATE_API_KEY"]
 PICOVOICE_API_KEY = os.environ["PICOVOICE_API_KEY"]
 
 if __name__ == '__main__':

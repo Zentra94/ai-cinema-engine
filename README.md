@@ -99,11 +99,13 @@ python -m ipykernel install --name venv --display-name "Ai-cinema-engine-venv"
 - Franco Zentilli Traverso (@Zentra94)
 
 ## Backlog
+- [ ] Improve prompt engineering music.
+- [ ] Correct match between input language and narrator, images, prompts (fail [example](https://www.youtube.com/watch?v=97z4gGIsvU0))
 - [ ] Expand channels: upload video to multi social media and formats: reels, shorts, tiktok, instagram, etc..
 - [ ] Migrate & Upload videos to GCP database.
 - [ ] Add a short intro and outro (DAMO video + static text)
 - [ ] Add social media trend scrapper to automatize title prompt creation.
-- [ ] Add AI [music engine](https://google-research.github.io/seanet/musiclm/examples/) to background music videos.
+- [X] Add AI [music engine](https://google-research.github.io/seanet/musiclm/examples/) to background music videos.
 - [x] Improve prompt engineering (get verb, subject, etc..) to get better images.
 - [X] Improve [cover](https://blog.devgenius.io/how-to-generate-youtube-thumbnails-easily-with-python-5d0a1f441f20) creation, that will attract more viewers to the video.
 - [ ] Improve content: check that chatGPT is not using "narrator" structure output or defaults answers _"as a natural language model I'm not..."_ and replace respectively.

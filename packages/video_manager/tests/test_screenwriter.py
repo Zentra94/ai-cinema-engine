@@ -5,9 +5,8 @@ from packages.video_manager.core.screenwriter import (ScreenWriter,
 from configs import (PATH_DATA_MOVIES_MUSIC,
                      PATH_DATA_MOVIES,
                      GCP_SA_KEY,
-                     STABLEDIFFUSION_API_KEY,
-                     OPENAI_API_KEY,
-                     PATH_STATICS_FONTS)
+                     REPLICATE_API_KEY,
+                     OPENAI_API_KEY)
 from PIL import Image
 
 
@@ -47,9 +46,10 @@ class TestScreenWriter(unittest.TestCase):
                                  open_ai_key=OPENAI_API_KEY,
                                  image_height=512,
                                  image_width=1024,
-                                 replicate_api_key=STABLEDIFFUSION_API_KEY,
-                                 replicate_engine="stability-ai/stable-diffusion",
-                                 replicate_version="f178fa7a1ae43a9a9af01b833b9d2ecf97b1bcb0acfd2dc5dd04895e042863f1")
+                                 replicate_api_key=REPLICATE_API_KEY,
+                                 replicate_stability_engine="stability-ai/stable-diffusion",
+                                 replicate_stability_version="f178fa7a1ae43a9a9af01b833b9d2ecf97b1bcb0acfd2dc5dd04895e042863f1",
+                                 )
 
     def test_generate_title_from_keywords(self):
         title = self.screen_writer.generate_title_from_prompt(
@@ -139,6 +139,15 @@ class TestScreenWriter(unittest.TestCase):
 
         new_image.show()
         self.assertEqual(True, True)
+
+    def test_generate_music(self):
+        text = "5 Surprising Facts About Panda Bears - You Won't Believe #3!"
+
+        path = self.screen_writer.generate_wav_file_music_from_prompt(prompt_a=text,
+                                                                      path=PATH_DATA_MOVIES_MUSIC/"test_bg_music.wav",
+                                                                      min_duration_sec=20)
+
+        self.assertEqual(path, PATH_DATA_MOVIES_MUSIC/"test_bg_music.wav")
 
     def test_fit(self):
         title_prompt = """
